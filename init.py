@@ -7,9 +7,9 @@ app = Flask(__name__)
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
-                       port = 8889,
+                       port = 3306,
                        user='root',
-                       password='root',
+                       password='allocaterite',
                        db='FlaskDemo',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
@@ -17,6 +17,7 @@ conn = pymysql.connect(host='localhost',
 #Define a route to hello function
 @app.route('/')
 def hello():
+    # return 'hello world'
     return render_template('index.html')
 
 #Define route for login
