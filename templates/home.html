@@ -9,7 +9,8 @@
 
 <h1>Welcome {{username}}</h1> 
 
-<a href="/upload_image">Upload photo</a> </br> 
+<a href="/upload_image">Upload photo</a><br> 
+<a href="/view_photos">View Photos</a><br>
 
 <style type="text/css">
 	table, th, td{
@@ -21,12 +22,14 @@ Here are your posts:
 
 <table>
 	<th>Time</th>
-	<th>Post</th>
+	<th>Photo ID</th>
+	<th>Caption</th>
 
 {% for line in posts %}
 	<tr>
-		<td>{{line.ts}}</td>
-		<td>{{line.blog_post}}</td>
+		<td>{{line.postingdate}}</td>
+		<td>{{line.photoID}}</td>
+		<td>{{line.caption}}</td>
 	</tr>
 {% endfor %}
 </table>
