@@ -1,16 +1,20 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
+import hashlib
 import pymysql.cursors
 
 #Initialize the app from Flask
 app = Flask(__name__)
 
+# Initialize SALT for password
+SALT = 'cs3083'
+
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
                        port = 3306,
-                       user='root',
-                       password='allocaterite',
-                       db='FlaskDemo',
+                       user='irvin',
+                       password='Itstuy14308!',
+                       db='Finstagram',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
 
@@ -35,13 +39,13 @@ def register():
 def loginAuth():
     #grabs information from the forms
     username = request.form['username']
-    password = request.form['password']
-
+    password = request.form['password'] + SALT
+    hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
     #cursor used to send queries
     cursor = conn.cursor()
     #executes query
-    query = 'SELECT * FROM user WHERE username = %s and password = %s'
-    cursor.execute(query, (username, password))
+    query = 'SELECT * FROM Person WHERE username = %s and password = %s'
+    cursor.execute(query, (username, hashed_password))
     #stores the results in a variable
     data = cursor.fetchone()
     #use fetchall() if you are expecting more than 1 data row
@@ -62,12 +66,15 @@ def loginAuth():
 def registerAuth():
     #grabs information from the forms
     username = request.form['username']
-    password = request.form['password']
-
+    password = request.form['password'] + SALT
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    bio = request.form['bio']
+    hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
     #cursor used to send queries
     cursor = conn.cursor()
     #executes query
-    query = 'SELECT * FROM user WHERE username = %s'
+    query = 'SELECT * FROM Person WHERE username = %s'
     cursor.execute(query, (username))
     #stores the results in a variable
     data = cursor.fetchone()
@@ -78,8 +85,8 @@ def registerAuth():
         error = "This user already exists"
         return render_template('register.html', error = error)
     else:
-        ins = 'INSERT INTO user VALUES(%s, %s)'
-        cursor.execute(ins, (username, password))
+        ins = 'INSERT INTO Person VALUES(%s, %s, %s, %s, %s)'
+        cursor.execute(ins, (username, hashed_password, first_name, last_name, bio))
         conn.commit()
         cursor.close()
         return render_template('index.html')
@@ -88,12 +95,12 @@ def registerAuth():
 @app.route('/home')
 def home():
     user = session['username']
-    cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, (user))
-    data = cursor.fetchall()
-    cursor.close()
-    return render_template('home.html', username=user, posts=data)
+    # cursor = conn.cursor();
+    # query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
+    # cursor.execute(query, (user))
+    # data = cursor.fetchall()
+    # cursor.close()
+    return render_template('home.html', username=user)
 
         
 @app.route('/post', methods=['GET', 'POST'])
