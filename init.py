@@ -1,6 +1,8 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
 import hashlib
+import os
+import time
 import pymysql.cursors
 
 #Initialize the app from Flask
@@ -8,6 +10,7 @@ app = Flask(__name__)
 
 # Initialize SALT for password
 SALT = 'cs3083'
+IMAGES_DIR = os.path.join(os.getcwd(), "images")
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
@@ -102,30 +105,46 @@ def home():
     # cursor.close()
     return render_template('home.html', username=user)
 
+
+@app.route('/upload_image')
+def upload_image():
+    return render_template('upload.html')
         
-@app.route('/post', methods=['GET', 'POST'])
+@app.route('/post', methods=['POST'])
 def post():
     username = session['username']
-    cursor = conn.cursor();
-    blog = request.form['blog']
-    query = 'INSERT INTO blog (blog_post, username) VALUES(%s, %s)'
-    cursor.execute(query, (blog, username))
-    conn.commit()
-    cursor.close()
-    return redirect(url_for('home'))
+    if request.files:
+        image_file = request.files.get("imageToUpload", "")
+        allFollowers = True if request.form['allFollowers'] == 'True' else False
+        caption = request.form['caption']
+        image_name = image_file.filename
+        filepath = os.path.join(IMAGES_DIR, image_name)
+        image_file.save(filepath)
+        query = 'INSERT INTO Photo (postingdate, filepath, allFollowers, caption, photoPoster) VALUES (%s, %s, %s, %s, %s)'
+        cursor = conn.cursor()
+        cursor.execute(query, (
+            time.strftime('%Y-%m-%d %H:%M:%S'), image_name, allFollowers, caption, username))
+        conn.commit()
+        cursor.close()
+        message = "Image has been successfully uploaded!"
+        return render_template('upload.html', message=message)
+    else:
+        message = "Failed to upload image."
+        return render_template('upload.html', message=message)
 
-@app.route('/select_blogger')
-def select_blogger():
-    #check that user is logged in
-    #username = session['username']
-    #should throw exception if username not found
+
+# @app.route('/select_blogger')
+# def select_blogger():
+#     #check that user is logged in
+#     #username = session['username']
+#     #should throw exception if username not found
     
-    cursor = conn.cursor();
-    query = 'SELECT DISTINCT username FROM blog'
-    cursor.execute(query)
-    data = cursor.fetchall()
-    cursor.close()
-    return render_template('select_blogger.html', user_list=data)
+#     cursor = conn.cursor();
+#     query = 'SELECT DISTINCT username FROM blog'
+#     cursor.execute(query)
+#     data = cursor.fetchall()
+#     cursor.close()
+#     return render_template('select_blogger.html', user_list=data)
 
 @app.route('/show_posts', methods=["GET", "POST"])
 def show_posts():
