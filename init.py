@@ -98,12 +98,12 @@ def registerAuth():
 @app.route('/home')
 def home():
     user = session['username']
-    # cursor = conn.cursor();
-    # query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    # cursor.execute(query, (user))
-    # data = cursor.fetchall()
-    # cursor.close()
-    return render_template('home.html', username=user)
+    cursor = conn.cursor();
+    query = 'SELECT postingdate, photoID, caption FROM Photo WHERE photoPoster = %s ORDER BY postingdate DESC'
+    cursor.execute(query, (user))
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('home.html', username=user, posts=data)
 
 
 @app.route('/upload_image')
@@ -146,15 +146,15 @@ def post():
 #     cursor.close()
 #     return render_template('select_blogger.html', user_list=data)
 
-@app.route('/show_posts', methods=["GET", "POST"])
-def show_posts():
-    poster = request.args['poster']
-    cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, poster)
-    data = cursor.fetchall()
-    cursor.close()
-    return render_template('show_posts.html', poster_name=poster, posts=data)
+@app.route('/view_photos', methods=["GET", "POST"])
+def view_photos():
+    # poster = request.args['poster']
+    # cursor = conn.cursor();
+    # query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
+    # cursor.execute(query, poster)
+    # data = cursor.fetchall()
+    # cursor.close()
+    return render_template('view_photos.html')
 
 @app.route('/logout')
 def logout():
