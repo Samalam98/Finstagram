@@ -12,8 +12,8 @@ SALT = 'cs3083'
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
                        port = 3306,
-                       user='youruserhere',
-                       password='yourpasshere',
+                       user='irvin',
+                       password='Itstuy14308!',
                        db='FlaskDemo',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
@@ -44,7 +44,7 @@ def loginAuth():
     #cursor used to send queries
     cursor = conn.cursor()
     #executes query
-    query = 'SELECT * FROM user WHERE username = %s and password = %s'
+    query = 'SELECT * FROM Person WHERE username = %s and password = %s'
     cursor.execute(query, (username, hashed_password))
     #stores the results in a variable
     data = cursor.fetchone()
@@ -82,7 +82,7 @@ def registerAuth():
         error = "This user already exists"
         return render_template('register.html', error = error)
     else:
-        ins = 'INSERT INTO user VALUES(%s, %s)'
+        ins = 'INSERT INTO Person VALUES(%s, %s)'
         cursor.execute(ins, (username, hashed_password))
         conn.commit()
         cursor.close()
@@ -92,11 +92,11 @@ def registerAuth():
 @app.route('/home')
 def home():
     user = session['username']
-    cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, (user))
-    data = cursor.fetchall()
-    cursor.close()
+    # cursor = conn.cursor();
+    # query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
+    # cursor.execute(query, (user))
+    # data = cursor.fetchall()
+    # cursor.close()
     return render_template('home.html', username=user, posts=data)
 
         
