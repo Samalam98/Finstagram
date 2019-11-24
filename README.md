@@ -1,6 +1,7 @@
 # Finstagram
 Database 3083 project
-##Features:
+
+## Features:
 Create account
 Follow others
 Make friend groups
