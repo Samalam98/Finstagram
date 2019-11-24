@@ -14,7 +14,7 @@ conn = pymysql.connect(host='localhost',
                        port = 3306,
                        user='irvin',
                        password='Itstuy14308!',
-                       db='FlaskDemo',
+                       db='Finstagram',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
 
@@ -66,7 +66,10 @@ def loginAuth():
 def registerAuth():
     #grabs information from the forms
     username = request.form['username']
-    password = request.form['password']
+    password = request.form['password'] + SALT
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    bio = request.form['bio']
     hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
     #cursor used to send queries
     cursor = conn.cursor()
@@ -82,8 +85,8 @@ def registerAuth():
         error = "This user already exists"
         return render_template('register.html', error = error)
     else:
-        ins = 'INSERT INTO Person VALUES(%s, %s)'
-        cursor.execute(ins, (username, hashed_password))
+        ins = 'INSERT INTO Person VALUES(%s, %s, %s, %s, %s)'
+        cursor.execute(ins, (username, hashed_password, first_name, last_name, bio))
         conn.commit()
         cursor.close()
         return render_template('index.html')
@@ -97,7 +100,7 @@ def home():
     # cursor.execute(query, (user))
     # data = cursor.fetchall()
     # cursor.close()
-    return render_template('home.html', username=user, posts=data)
+    return render_template('home.html', username=user)
 
         
 @app.route('/post', methods=['GET', 'POST'])
