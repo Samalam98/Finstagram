@@ -10,14 +10,12 @@
 </style>
 
 <table>
-	<th>Time</th>
 	<th>Photo</th>
 	<th>
 
 {% for line in posts %}
 	<tr>
-		<td>{{line.ts}}</td>
-		<td>{{line.blog_post}}</td>
+		<td>{{line.photoID}}</td>
 	</tr>
 {% endfor %}
 </table>

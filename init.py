@@ -148,13 +148,14 @@ def post():
 
 @app.route('/view_photos', methods=["GET", "POST"])
 def view_photos():
-    # poster = request.args['poster']
-    # cursor = conn.cursor();
-    # query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    # cursor.execute(query, poster)
-    # data = cursor.fetchall()
-    # cursor.close()
-    return render_template('view_photos.html')
+    #view all available photoID of photos for testUser
+    username = session['username']
+    cursor = conn.cursor();
+    query = 'SELECT photoID FROM photo JOIN follow ON (photo.photoPoster = follow.username_followed) WHERE (photo.AllFollowers = true AND follow.username = testUser)'
+    cursor.execute(query, poster)
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('view_photos.html', posts=data)
 
 @app.route('/logout')
 def logout():
