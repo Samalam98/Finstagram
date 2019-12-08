@@ -109,9 +109,6 @@ def home():
 # Go to upload image page
 @app.route('/upload_image')
 def upload_image():
-<<<<<<< HEAD
-    return render_template('upload.html')
-=======
     username = session['username']
     cursor = conn.cursor();
     query = 'SELECT groupName, owner_username FROM BelongTo WHERE member_username = %s'
@@ -119,7 +116,6 @@ def upload_image():
     data = cursor.fetchall()
     cursor.close()
     return render_template('upload.html', groups=data)
->>>>>>> 5aa29cc249746b6648bdf18f0c4785c932bf7fb9
 
 # Upload image
 @app.route('/post', methods=['POST'])
