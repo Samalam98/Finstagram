@@ -260,6 +260,7 @@ def view_photos():
         JOIN BelongTo ON (groupOwner = owner_username AND p1.groupName = BelongTo.groupName) 
         WHERE member_username = %s AND photoPoster <> %s) '''
     cursor.execute(query, (username, username, username))
+    conn.commmit()
     data = cursor.fetchall()
     cursor.close()
     return render_template('view_photos.html', posts=data)
