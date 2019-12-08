@@ -172,6 +172,31 @@ def follow_request():
         message = "User does not exist."
         return render_template('follow_user.html', message=message)
 
+# Go to view follow requests page
+@app.route('/view_requests')
+def view_requests():
+    username = session['username']
+    cursor = conn.cursor()
+    query = 'SELECT username_follower FROM Follow WHERE username_followed = %s AND followstatus = %s'
+    cursor.execute(query, (username, False))
+    conn.commit()
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('view_requests.html', requests=data)
+
+# Accept follow request
+@app.route('/accept_request', methods=['POST'])
+def accept_request():
+    username = session['username']
+    username_follower = request.form['username_follower']
+    cursor = conn.cursor()
+    query = 'UPDATE Follow SET followstatus = %s WHERE username_followed = %s AND username_follower = %s'
+    cursor.execute(query, (True, username, username_follower))
+    conn.commit()
+    cursor.close()
+    message = '{} is now a follower!'.format(username_follower)
+    return render_template('success_message.html', message=message)
+
 # @app.route('/select_blogger')
 # def select_blogger():
 #     #check that user is logged in
