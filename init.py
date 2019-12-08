@@ -1,5 +1,6 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
+import json
 import hashlib
 import os
 import time
@@ -64,7 +65,7 @@ def loginAuth():
         error = 'Invalid login or username'
         return render_template('login.html', error=error)
 
-#Authenticates the register
+# Authenticates the register
 @app.route('/registerAuth', methods=['GET', 'POST'])
 def registerAuth():
     #grabs information from the forms
@@ -74,17 +75,17 @@ def registerAuth():
     last_name = request.form['last_name']
     bio = request.form['bio']
     hashed_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
-    #cursor used to send queries
+    # cursor used to send queries
     cursor = conn.cursor()
-    #executes query
+    # executes query
     query = 'SELECT * FROM Person WHERE username = %s'
     cursor.execute(query, (username))
-    #stores the results in a variable
+    # stores the results in a variable
     data = cursor.fetchone()
-    #use fetchall() if you are expecting more than 1 data row
+    # use fetchall() if you are expecting more than 1 data row
     error = None
     if(data):
-        #If the previous query returns data, then user exists
+        # If the previous query returns data, then user exists
         error = "This user already exists"
         return render_template('register.html', error = error)
     else:
@@ -108,30 +109,56 @@ def home():
 # Go to upload image page
 @app.route('/upload_image')
 def upload_image():
+<<<<<<< HEAD
     return render_template('upload.html')
+=======
+    username = session['username']
+    cursor = conn.cursor();
+    query = 'SELECT groupName, owner_username FROM BelongTo WHERE member_username = %s'
+    cursor.execute(query, (username))
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('upload.html', groups=data)
+>>>>>>> 5aa29cc249746b6648bdf18f0c4785c932bf7fb9
 
 # Upload image
 @app.route('/post', methods=['POST'])
 def post():
     username = session['username']
     if request.files:
+        # retrieve appropriate information for insertion 
         image_file = request.files.get("imageToUpload", "")
         allFollowers = True if request.form['allFollowers'] == 'True' else False
         caption = request.form['caption']
         image_name = image_file.filename
+        friendGroups = request.form.getlist('shareGroup')
+        print(request.form)
+        print(friendGroups)
         filepath = os.path.join(IMAGES_DIR, image_name)
         image_file.save(filepath)
+        # add photo to database 
         query = 'INSERT INTO Photo (postingdate, filepath, allFollowers, caption, photoPoster) VALUES (%s, %s, %s, %s, %s)'
         cursor = conn.cursor()
         cursor.execute(query, (
             time.strftime('%Y-%m-%d %H:%M:%S'), image_name, allFollowers, caption, username))
         conn.commit()
+        # find id of photo that was just uploaded
+        query = 'SELECT max(photoID) AS ID FROM Photo WHERE photoPoster = %s'
+        cursor.execute(query, (username))
+        data = cursor.fetchone()
+        print(data)
+        # share photo with selected friend groups 
+        query = 'INSERT INTO SharedWith (groupOwner, groupName, photoID) VALUES (%s, %s, %s)'
+        for friendGroup in friendGroups:
+            friendGroup = json.loads(friendGroup)
+            cursor.execute(query, (friendGroup['ownername'], friendGroup['groupname'], data['ID']))
+        conn.commit()
         cursor.close()
         message = "Image has been successfully uploaded!"
-        return render_template('upload.html', message=message)
+        return render_template('message.html', page='upload_image', message=message)
     else:
         message = "Failed to upload image."
-        return render_template('upload.html', message=message)
+        return render_template('message.html', page='upload_image', message=message)
 
 # Go to follow user page
 @app.route('/follow_user')
@@ -196,7 +223,7 @@ def accept_request():
     conn.commit()
     cursor.close()
     message = '{} is now a follower!'.format(username_follower)
-    return render_template('success_message.html', message=message)
+    return render_template('message.html', page='view_request', message=message)
 
 @app.route('/delete_request', methods=['POST'])
 def delete_request():
@@ -208,7 +235,7 @@ def delete_request():
     conn.commit()
     cursor.close()
     message = 'Follow request from {} has been deleted.'.format(username_follower)
-    return render_template('success_message.html', message=message)
+    return render_template('message.html', page='view_request', message=message)
 
 # @app.route('/select_blogger')
 # def select_blogger():
