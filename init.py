@@ -251,7 +251,7 @@ def view_photos():
     #view all available photoID of photos for testUser
     username = session['username']
     cursor = conn.cursor()
-    query = 'SELECT photoID, photoPoster FROM Photo JOIN Follow ON (photo.photoPoster = Follow.username_followed) WHERE Photo.AllFollowers = true AND Follow.username_follower = %s ORDER BY postingdate DESC'
+    query = 'SELECT photoID, photoPoster FROM Photo JOIN Follow ON (Photo.photoPoster = Follow.username_followed) WHERE Photo.AllFollowers = true AND Follow.username_follower = %s ORDER BY postingdate DESC'
     cursor.execute(query, (username))
     data = cursor.fetchall()
     cursor.close()
