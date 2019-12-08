@@ -94,7 +94,7 @@ def registerAuth():
         cursor.close()
         return render_template('index.html')
 
-
+# Load home page
 @app.route('/home')
 def home():
     user = session['username']
@@ -105,11 +105,11 @@ def home():
     cursor.close()
     return render_template('home.html', username=user, posts=data)
 
-
+# Go to upload image page
 @app.route('/upload_image')
 def upload_image():
     return render_template('upload.html')
-        
+# Upload image
 @app.route('/post', methods=['POST'])
 def post():
     username = session['username']
@@ -132,6 +132,82 @@ def post():
         message = "Failed to upload image."
         return render_template('upload.html', message=message)
 
+# Go to follow user page
+@app.route('/follow_user')
+def follow_user():
+    return render_template('follow_user.html')
+
+@app.route('/follow_request', methods=['POST'])
+def follow_request():
+    username = session['username']
+    username_followed = request.form['follow-user']
+    cursor = conn.cursor()
+    # check to see if username_followed exists
+    query = 'SELECT * FROM Person WHERE username = %s'
+    cursor.execute(query, (username_followed))
+    data = cursor.fetchone()
+    # if user exists
+    if (data):
+        # if requested user to follow is the same as follower
+        if (data['username'] == username):
+            message = "Can't follow yourself!"
+            return render_template('follow_user.html', message=message)
+        else:
+            # check to see if user has already requested/is following username_followed
+            query = 'SELECT * FROM Follow WHERE username_followed = %s AND username_follower = %s'
+            cursor.execute(query, (username_followed, username))
+            data = cursor.fetchone()
+            # already following or requested
+            if (data):
+                message = "Already following" if data['followstatus'] else "Already requested."
+                return render_template('follow_user.html', message=message)
+            else: # make the request
+                query = 'INSERT INTO Follow (username_followed, username_follower, followStatus) VALUES (%s, %s, %s)'
+                cursor.execute(query, (username_followed, username, False))
+                conn.commit()
+                cursor.close()
+                message = "Follow request sent!"
+                return render_template('follow_user.html', message=message)
+    else: # user does not exist
+        message = "User does not exist."
+        return render_template('follow_user.html', message=message)
+
+# Go to view follow requests page
+@app.route('/view_requests')
+def view_requests():
+    username = session['username']
+    cursor = conn.cursor()
+    query = 'SELECT username_follower FROM Follow WHERE username_followed = %s AND followstatus = %s'
+    cursor.execute(query, (username, False))
+    conn.commit()
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('view_requests.html', requests=data)
+
+# Accept follow request
+@app.route('/accept_request', methods=['POST'])
+def accept_request():
+    username = session['username']
+    username_follower = request.form['username_follower']
+    cursor = conn.cursor()
+    query = 'UPDATE Follow SET followstatus = %s WHERE username_followed = %s AND username_follower = %s'
+    cursor.execute(query, (True, username, username_follower))
+    conn.commit()
+    cursor.close()
+    message = '{} is now a follower!'.format(username_follower)
+    return render_template('success_message.html', message=message)
+
+@app.route('/delete_request', methods=['POST'])
+def delete_request():
+    username = session['username']
+    username_follower = request.form['username_follower']
+    cursor = conn.cursor()
+    query = 'DELETE FROM Follow WHERE username_followed = %s AND username_follower = %s'
+    cursor.execute(query, (username, username_follower))
+    conn.commit()
+    cursor.close()
+    message = 'Follow request from {} has been deleted.'.format(username_follower)
+    return render_template('success_message.html', message=message)
 
 # @app.route('/select_blogger')
 # def select_blogger():

@@ -1,0 +1,13 @@
+<html>
+<head></head>
+<body>
+	<h2>Search for a person to follow</h2>
+	<form action="/follow_request" method="POST">
+		<input type="text" name="follow-user" placeholder="username" required/>
+		<input type="submit" value=Follow />
+		{{message}}
+	</form>
+
+	<a href="/home">Go Back</a>
+</body>
+</html>
