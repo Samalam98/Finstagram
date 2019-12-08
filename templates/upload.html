@@ -6,12 +6,20 @@
         <h1>Upload an Image!</h1>
         <div>
             <form action="/post" method="post" enctype="multipart/form-data">
-                <input type="file" name="imageToUpload" accept="image/*">
-                <br/>
-                <h2>Show post to all your followers?</h2>
-                <input type="radio" name="allFollowers" value="True" checked>True<br>
-                <input type="radio" name="allFollowers" value="False">False<br>
-                <textarea rows="3" cols="25" maxlength="100" name="caption" placeholder="Caption"></textarea>
+                <strong>Select an image </strong><input type="file" name="imageToUpload" accept="image/*"><br><br>
+                {% if groups %}
+                    <strong>Select FriendGroups:</strong><br>
+                    {% for group in groups %}
+                        <strong>{{group.groupName}}</strong> owned by <strong>{{group.owner_username}}</strong>
+                        <input type="checkbox" name="shareGroup" value='{"groupname":"{{group.groupName}}", "ownername":"{{group.owner_username}}"}' multiple/><br>
+                    {% endfor %}
+                    <br>
+                {% endif %}
+                <strong>Show post to all your followers?</strong>
+                <input type="radio" name="allFollowers" value="True" checked>Yes
+                <input type="radio" name="allFollowers" value="False">No<br>
+                <strong>Include a caption:</strong><br>
+                <textarea rows="3" cols="25" maxlength="100" name="caption" placeholder="Caption"></textarea><br>
                 <input type="submit" value="Upload">
             </form>
         </div>
