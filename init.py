@@ -251,8 +251,16 @@ def view_photos():
     #view all available photoID of photos for testUser
     username = session['username']
     cursor = conn.cursor()
-    query = 'SELECT photoID, photoPoster FROM Photo JOIN Follow ON (photo.photoPoster = Follow.username_followed) WHERE Photo.AllFollowers = true AND Follow.username_follower = %s ORDER BY postingdate DESC'
-    cursor.execute(query, (username))
+    query = '''(SELECT DISTINCT photoID, photoPoster 
+        FROM Photo JOIN Follow ON (Photo.photoPoster = Follow.username_followed) 
+        WHERE Photo.AllFollowers = True AND Follow.username_follower = %s
+        ORDER BY postingdate DESC) UNION
+        (SELECT DISTINCT photoID, photoPoster 
+        FROM (Photo NATURAL JOIN SharedWith AS p1) 
+        JOIN BelongTo ON (groupOwner = owner_username AND p1.groupName = BelongTo.groupName) 
+        WHERE member_username = %s AND photoPoster <> %s) '''
+    cursor.execute(query, (username, username, username))
+    conn.commmit()
     data = cursor.fetchall()
     cursor.close()
     return render_template('view_photos.html', posts=data)
@@ -268,3 +276,4 @@ app.secret_key = 'some key that you will never guess'
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
     app.run('127.0.0.1', 5000, debug = True)
+
