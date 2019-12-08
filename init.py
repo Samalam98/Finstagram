@@ -197,6 +197,18 @@ def accept_request():
     message = '{} is now a follower!'.format(username_follower)
     return render_template('success_message.html', message=message)
 
+@app.route('/delete_request', methods=['POST'])
+def delete_request():
+    username = session['username']
+    username_follower = request.form['username_follower']
+    cursor = conn.cursor()
+    query = 'DELETE FROM Follow WHERE username_followed = %s AND username_follower = %s'
+    cursor.execute(query, (username, username_follower))
+    conn.commit()
+    cursor.close()
+    message = 'Follow request from {} has been deleted.'.format(username_follower)
+    return render_template('success_message.html', message=message)
+
 # @app.route('/select_blogger')
 # def select_blogger():
 #     #check that user is logged in
