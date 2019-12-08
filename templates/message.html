@@ -1,0 +1,12 @@
+<html>
+	<head></head>
+
+	<body>
+		{{ message }}
+		{% if page == 'view_requests'%}
+			<a href="/view_requests">Go Back</a>
+		{% elif page == 'upload_image' %}
+			<a href="/upload_image">Go Back</a>
+		{% endif %}
+	</body>
+</html>
