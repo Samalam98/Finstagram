@@ -9,13 +9,16 @@
 	}
 </style>
 
+You're Viewing All Posts:
+
 <table>
-	<th>Photo</th>
-	<th>
+	<th>Photo ID</th>
+	<th>Poster</th>
 
 {% for line in posts %}
 	<tr>
 		<td>{{line.photoID}}</td>
+		<td>{{line.photoPoster}}</td>
 	</tr>
 {% endfor %}
 </table>

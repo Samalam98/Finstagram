@@ -98,7 +98,7 @@ def registerAuth():
 @app.route('/home')
 def home():
     user = session['username']
-    cursor = conn.cursor();
+    cursor = conn.cursor()
     query = 'SELECT postingdate, photoID, caption FROM Photo WHERE photoPoster = %s ORDER BY postingdate DESC'
     cursor.execute(query, (user))
     data = cursor.fetchall()
@@ -109,6 +109,7 @@ def home():
 @app.route('/upload_image')
 def upload_image():
     return render_template('upload.html')
+
 # Upload image
 @app.route('/post', methods=['POST'])
 def post():
@@ -226,9 +227,9 @@ def delete_request():
 def view_photos():
     #view all available photoID of photos for testUser
     username = session['username']
-    cursor = conn.cursor();
-    query = 'SELECT photoID FROM photo JOIN follow ON (photo.photoPoster = follow.username_followed) WHERE (photo.AllFollowers = true AND follow.username = testUser)'
-    cursor.execute(query, poster)
+    cursor = conn.cursor()
+    query = 'SELECT photoID, photoPoster FROM Photo JOIN Follow ON (photo.photoPoster = Follow.username_followed) WHERE Photo.AllFollowers = true AND Follow.username_follower = %s ORDER BY postingdate DESC'
+    cursor.execute(query, (username))
     data = cursor.fetchall()
     cursor.close()
     return render_template('view_photos.html', posts=data)
