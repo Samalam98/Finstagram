@@ -195,12 +195,24 @@ def tag_request():
         message = "User does not exist."
         return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
 
+# View tag requests
+@app.route('/view_tag_requests')
+def view_tag_requests():
+    username = session['username']
+    cursor = conn.cursor()
+    query = 'SELECT photoID, photoPoster FROM Tagged NATURAL JOIN Photo WHERE username = %s AND tagstatus = %s'
+    cursor.execute(query, (username, False))
+    conn.commit()
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('view_tag_requests.html', requests=data)
 
 # Go to follow user page
 @app.route('/follow_user')
 def follow_user():
     return render_template('follow_user.html')
 
+# Make follow request
 @app.route('/follow_request', methods=['POST'])
 def follow_request():
     username = session['username']
@@ -238,7 +250,7 @@ def follow_request():
 
 # Go to view follow requests page
 @app.route('/view_follow_requests')
-def view_requests():
+def view_follow_requests():
     username = session['username']
     cursor = conn.cursor()
     query = 'SELECT username_follower FROM Follow WHERE username_followed = %s AND followstatus = %s'
@@ -249,7 +261,7 @@ def view_requests():
     return render_template('view_follow_requests.html', requests=data)
 
 # Accept follow request
-@app.route('/accept_request', methods=['POST'])
+@app.route('/accept_follow_request', methods=['POST'])
 def accept_request():
     username = session['username']
     username_follower = request.form['username_follower']
@@ -261,7 +273,8 @@ def accept_request():
     message = '{} is now a follower!'.format(username_follower)
     return render_template('message.html', page='view_follow_request', message=message)
 
-@app.route('/delete_request', methods=['POST'])
+# Delete follow request
+@app.route('/delete_follow_request', methods=['POST'])
 def delete_request():
     username = session['username']
     username_follower = request.form['username_follower']

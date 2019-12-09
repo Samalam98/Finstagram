@@ -1,0 +1,34 @@
+<html>
+	<head></head>
+	<body>
+
+		<style type="text/css">
+			table, th, td{
+				border: 1px solid black;
+			}
+		</style>
+		{{ message }}
+		<h2>Tag Requests:</h2>
+		
+		{% if requests %}
+			<table>	
+				<tr>
+					<th>Photo ID</th>
+					<th>Photo Poster</th>
+				</tr>
+			{% for request in requests %}
+				<tr>
+					<td>{{request.photoID}}</td>
+					<td>{{request.photoPoster}}</td>
+					<td><form action="/accept_tag_request" method="POST"><input type="hidden" name="photo-id" value="{{request.photoID}}"/><input type="submit" value=Accept ></form></td>
+					<td><form action="/delete_tag_request" method="POST"><input type="hidden" name="photo-id" value="{{request.photoID}}"/><input type="submit" value=Delete ></form></td>
+				</tr>
+			{% endfor %}
+			</table>
+		{% else %}
+			You have no requests at the moment. <br>
+		{% endif %}
+
+		<a href="/home">Go Back</a>
+	</body>
+</html>
