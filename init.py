@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 # Initialize SALT for password
 SALT = 'cs3083'
-IMAGES_DIR = os.path.join(os.getcwd(), "images")
+IMAGES_DIR = os.path.join(os.getcwd(), "static")
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
@@ -312,19 +312,6 @@ def delete_request():
     message = 'Follow request from {} has been deleted.'.format(username_follower)
     return render_template('message.html', page='view_follow_request', message=message)
 
-# @app.route('/select_blogger')
-# def select_blogger():
-#     #check that user is logged in
-#     #username = session['username']
-#     #should throw exception if username not found
-    
-#     cursor = conn.cursor();
-#     query = 'SELECT DISTINCT username FROM blog'
-#     cursor.execute(query)
-#     data = cursor.fetchall()
-#     cursor.close()
-#     return render_template('select_blogger.html', user_list=data)
-
 @app.route('/view_photos', methods=["GET", "POST"])
 def view_photos():
     #view all available photoID of photos for testUser
@@ -356,14 +343,36 @@ def view_info(photo_id, prev_page):
             '''
     cursor.execute(query, (photo_id))
     conn.commit()
-    data = cursor.fetchall()
+    data = cursor.fetchone()
+    query2 = 'SELECT username, rating FROM Likes WHERE photoID = %s'
+    cursor.execute(query2, (photo_id))
+    liked_by = cursor.fetchall()
+    print(liked_by)
     cursor.close()
-    return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id)
+    return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id, liked_by=liked_by)
 
 @app.route('/like', methods=["GET", "POST"])
 def like():
+    username = session['username']
+    cursor = conn.cursor()
+    photo_id = request.args.get('photoID')
+    rating = request.form['rating'] 
+    query = 'SELECT * FROM Likes WHERE username = %s AND photoID = %s'
+    cursor.execute(query, (username, photo_id))
+    data = cursor.fetchone()
+    # if found like history
+    message = "You have already liked and given this photo a rating!"
+    if (data):
+        
+        if (data['username'] == username and data['photoID'] == photo_id):   
+            return render_template('view_photos.html', message=message)
+    else:
+        query = 'INSERT INTO Likes (username, photoID, liketime, rating) VALUES (%s, %s, %s, %s)'
+        cursor.execute(query, (
+            username, photo_id, time.strftime('%Y-%m-%d %H:%M:%S'), rating))
+        return render_template('view_photos.html', message=message)
     return render_template('home.html')
-    
+
 @app.route('/logout')
 def logout():
     session.pop('username')

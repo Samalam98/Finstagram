@@ -2,10 +2,16 @@
 <head></head>
 <body>
     <ul>
-        <li>Time Stamp: {{info[0].postingdate}}</li>
-        <li>First Name: {{info[0].firstName}}</li>
-        <li>Last Name: {{info[0].lastName}}</li>
-        <li>Liked By: </li>
+        <li>Time Stamp: {{info.postingdate}}</li>
+        <li>First Name: {{info.firstName}}</li>
+        <li>Last Name: {{info.lastName}}</li>
+        <li>Liked By: 
+            <ul>
+                {% for liked in liked_by %}
+                <li>{{liked.username}}, Rating: {{liked.rating}}</li>
+                {% endfor %}
+            </ul>
+        </li>
     </ul>
 	{% if prev_page == "own_photos" %}
 		<a href="/home">Go Back</a>
