@@ -30,7 +30,16 @@ CREATE TABLE Photo (
     FOREIGN KEY(photoPoster) REFERENCES Person(username)
 );
 
-
+CREATE TABLE Comments (
+    commentID int AUTO_INCREMENT,
+	username VARCHAR(20),
+	photoID int,
+	comment_time DATETIME,
+	comment TEXT(65535),
+	PRIMARY KEY(commentID), 
+	FOREIGN KEY(username) REFERENCES Person(username),
+	FOREIGN KEY(photoID) REFERENCES Photo(photoID)	
+);
 
 CREATE TABLE Likes (
     username VARCHAR(20), 

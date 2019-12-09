@@ -8,9 +8,18 @@
         <li>Liked By: 
             <ul>
                 {% for liked in liked_by %}
-                <li>{{liked.username}}, Rating: {{liked.rating}}</li>
+                <li>{{liked.username}}, Rating: {{liked.rating}}, Time: {{liked.liketime}}</li>
                 {% endfor %}
             </ul>
+        </li>
+        <li>Comment By:
+            <ul>
+                {% for comment in comments %}
+                <li>{{comment.username}}, Time: {{comment.comment_time}}</li>
+                <p>{{comment.comment}}</p>
+                {% endfor %}
+            </ul>
+        
         </li>
     </ul>
 	{% if prev_page == "own_photos" %}

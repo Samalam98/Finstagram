@@ -344,12 +344,14 @@ def view_info(photo_id, prev_page):
     cursor.execute(query, (photo_id))
     conn.commit()
     data = cursor.fetchone()
-    query2 = 'SELECT username, rating FROM Likes WHERE photoID = %s'
+    query2 = 'SELECT username, rating, liketime FROM Likes WHERE photoID = %s'
     cursor.execute(query2, (photo_id))
     liked_by = cursor.fetchall()
-    print(liked_by)
+    query3 = 'SELECT username, comment, comment_time FROM Comments WHERE photoID = %s'
+    cursor.execute(query3, (photo_id))
+    comments = cursor.fetchall()
     cursor.close()
-    return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id, liked_by=liked_by)
+    return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id, liked_by=liked_by, comments=comments)
 
 @app.route('/like', methods=["GET", "POST"])
 def like():
@@ -375,8 +377,22 @@ def like():
         message= "You successfully liked this post!"
         cursor.execute(query, (
             username, photo_id, time.strftime('%Y-%m-%d %H:%M:%S'), rating))
+        conn.commit()
         cursor.close()
         return render_template('message.html', page='view_photo', message=message)
+    return render_template('message.html', page='view_photos', message=message)
+
+@app.route('/comment', methods=["GET", "POST"])
+def comment():
+    username = session['username']
+    cursor = conn.cursor()
+    photo_id = request.args.get('photoID')
+    comment = request.form['comment']
+    query = 'INSERT INTO Comments (username, photoID, comment_time, comment) VALUES (%s, %s, %s, %s)'
+    cursor.execute(query, (username, photo_id, time.strftime('%Y-%m-%d %H:%M:%S'), comment))
+    conn.commit()
+    cursor.close()
+    message = "You successfully commented on this post!"
     return render_template('message.html', page='view_photos', message=message)
 
 @app.route('/logout')
