@@ -128,8 +128,6 @@ def post():
         caption = request.form['caption']
         image_name = image_file.filename
         friendGroups = request.form.getlist('shareGroup')
-        print(request.form)
-        print(friendGroups)
         filepath = os.path.join(IMAGES_DIR, image_name)
         image_file.save(filepath)
         # add photo to database 
@@ -142,7 +140,6 @@ def post():
         query = 'SELECT max(photoID) AS ID FROM Photo WHERE photoPoster = %s'
         cursor.execute(query, (username))
         data = cursor.fetchone()
-        print(data)
         # share photo with selected friend groups 
         query = 'INSERT INTO SharedWith (groupOwner, groupName, photoID) VALUES (%s, %s, %s)'
         for friendGroup in friendGroups:
@@ -156,11 +153,92 @@ def post():
         message = "Failed to upload image."
         return render_template('message.html', page='upload_image', message=message)
 
+# Go to tag user page
+@app.route('/tag_user/<prev_page>/<photo_id>')
+def tag_user(prev_page, photo_id):
+    return render_template('tag_user.html', prev_page=prev_page, id=photo_id)
+
+# Make a tag request
+@app.route('/tag_request', methods=['POST'])
+def tag_request():
+    username = session['username']
+    tagged_user = request.form['tag-user']
+    photo_id = int(request.form['photo-id'])
+    prev_page = request.form['prev-page']
+    cursor = conn.cursor()
+    # check to see if user being tagged exists
+    query = 'SELECT * FROM Person WHERE username = %s'
+    cursor.execute(query, (tagged_user))
+    data = cursor.fetchone()
+    # if user exists
+    if (data):
+        # check to see if a tag request has already been made for this user photo combination
+        query = 'SELECT * FROM Tagged WHERE username = %s AND photoID = %s'
+        cursor.execute(query, (tagged_user, photo_id))
+        data = cursor.fetchone()
+        # tag already exists
+        if (data):
+            cursor.close()
+            message = "User is already tagged in this photo."
+            return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
+        else: # create tag request
+            query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES(%s, %s, %s)'
+            # if self-tag, set tagstatus to True, else set it False
+            tagstatus = True if tagged_user == username else False
+            cursor.execute(query, (tagged_user, photo_id, tagstatus))
+            conn.commit()
+            cursor.close()
+            message = "Tag request successfully made!"
+            return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
+    else: # user does not exist
+        cursor.close()
+        message = "User does not exist."
+        return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
+
+# View tag requests
+@app.route('/view_tag_requests')
+def view_tag_requests():
+    username = session['username']
+    cursor = conn.cursor()
+    query = 'SELECT photoID, photoPoster FROM Tagged NATURAL JOIN Photo WHERE username = %s AND tagstatus = %s'
+    cursor.execute(query, (username, False))
+    conn.commit()
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('view_tag_requests.html', requests=data)
+
+# Accept tag request
+@app.route('/accept_tag_request', methods=['POST'])
+def accept_tag_request():
+    username = session['username']
+    photo_id = request.form['photo-id']
+    cursor = conn.cursor()
+    query = 'UPDATE Tagged SET tagstatus = %s WHERE username = %s AND photoID = %s'
+    cursor.execute(query, (True, username, photo_id))
+    conn.commit()
+    cursor.close()
+    message = 'You are now tagged in photo {}'.format(photo_id)
+    return render_template('message.html', page="view_tag_request", message=message)
+
+# Delete tag request
+@app.route('/delete_tag_request', methods=['POST'])
+def delete_tag_request():
+    username = session['username']
+    photo_id = request.form['photo-id']
+    cursor = conn.cursor()
+    query = 'DELETE FROM Tagged WHERE username = %s AND photoID = %s'
+    cursor.execute(query, (username, photo_id))
+    conn.commit()
+    cursor.close()
+    message = 'Deleted tag request for photo {}'.format(photo_id)
+    return render_template('message.html', page="view_tag_request", message=message)
+
 # Go to follow user page
 @app.route('/follow_user')
 def follow_user():
     return render_template('follow_user.html')
 
+# Make follow request
 @app.route('/follow_request', methods=['POST'])
 def follow_request():
     username = session['username']
@@ -197,8 +275,8 @@ def follow_request():
         return render_template('follow_user.html', message=message)
 
 # Go to view follow requests page
-@app.route('/view_requests')
-def view_requests():
+@app.route('/view_follow_requests')
+def view_follow_requests():
     username = session['username']
     cursor = conn.cursor()
     query = 'SELECT username_follower FROM Follow WHERE username_followed = %s AND followstatus = %s'
@@ -206,10 +284,10 @@ def view_requests():
     conn.commit()
     data = cursor.fetchall()
     cursor.close()
-    return render_template('view_requests.html', requests=data)
+    return render_template('view_follow_requests.html', requests=data)
 
 # Accept follow request
-@app.route('/accept_request', methods=['POST'])
+@app.route('/accept_follow_request', methods=['POST'])
 def accept_request():
     username = session['username']
     username_follower = request.form['username_follower']
@@ -219,9 +297,10 @@ def accept_request():
     conn.commit()
     cursor.close()
     message = '{} is now a follower!'.format(username_follower)
-    return render_template('message.html', page='view_request', message=message)
+    return render_template('message.html', page='view_follow_request', message=message)
 
-@app.route('/delete_request', methods=['POST'])
+# Delete follow request
+@app.route('/delete_follow_request', methods=['POST'])
 def delete_request():
     username = session['username']
     username_follower = request.form['username_follower']
@@ -231,7 +310,7 @@ def delete_request():
     conn.commit()
     cursor.close()
     message = 'Follow request from {} has been deleted.'.format(username_follower)
-    return render_template('message.html', page='view_request', message=message)
+    return render_template('message.html', page='view_follow_request', message=message)
 
 # @app.route('/select_blogger')
 # def select_blogger():
@@ -260,7 +339,7 @@ def view_photos():
         JOIN BelongTo ON (groupOwner = owner_username AND p1.groupName = BelongTo.groupName) 
         WHERE member_username = %s AND photoPoster <> %s) '''
     cursor.execute(query, (username, username, username))
-    conn.commmit()
+    conn.commit()
     data = cursor.fetchall()
     cursor.close()
     return render_template('view_photos.html', posts=data)

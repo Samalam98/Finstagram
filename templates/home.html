@@ -12,7 +12,8 @@
 <a href="/upload_image">Upload photo</a><br> 
 <a href="/view_photos">View Photos</a><br>
 <a href="/follow_user">Follow Someone</a><br>
-<a href="/view_requests">View Follow Requests</a><br>
+<a href="/view_follow_requests">View Follow Requests</a><br>
+<a href="/view_tag_requests">View Tag Requests</a><br>
 
 <style type="text/css">
 	table, th, td{
@@ -32,6 +33,7 @@ Here are your posts:
 		<td>{{line.postingdate}}</td>
 		<td>{{line.photoID}}</td>
 		<td>{{line.caption}}</td>
+		<td><a href="/tag_user/own_photos/{{line.photoID}}">Tag Users</a></td>
 	</tr>
 {% endfor %}
 </table>

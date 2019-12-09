@@ -1,0 +1,29 @@
+<html>
+	<head></head>
+	<body>
+
+		<style type="text/css">
+			table, th, td{
+				border: 1px solid black;
+			}
+		</style>
+		
+		<h2>Follow Requests:</h2>
+		
+		{% if requests %}
+			<table>	
+			{% for request in requests %}
+				<tr>
+					<td>{{request.username_follower}}</td>
+					<td><form action="/accept_follow_request" method="POST"><input type="hidden" name="username_follower" value="{{request.username_follower}}"/><input type="submit" value=Accept ></form></td>
+					<td><form action="/delete_follow_request" method="POST"><input type="hidden" name="username_follower" value="{{request.username_follower}}"/><input type="submit" value=Delete ></form></td>
+				</tr>
+			{% endfor %}
+			</table>
+		{% else %}
+			You have no requests at the moment. <br>
+		{% endif %}
+
+		<a href="/home">Go Back</a>
+	</body>
+</html>
