@@ -207,6 +207,32 @@ def view_tag_requests():
     cursor.close()
     return render_template('view_tag_requests.html', requests=data)
 
+# Accept tag request
+@app.route('/accept_tag_request', methods=['POST'])
+def accept_tag_request():
+    username = session['username']
+    photo_id = request.form['photo-id']
+    cursor = conn.cursor()
+    query = 'UPDATE Tagged SET tagstatus = %s WHERE username = %s AND photoID = %s'
+    cursor.execute(query, (True, username, photo_id))
+    conn.commit()
+    cursor.close()
+    message = 'You are now tagged in photo {}'.format(photo_id)
+    return render_template('message.html', page="view_tag_request", message=message)
+
+# Delete tag request
+@app.route('/delete_tag_request', methods=['POST'])
+def delete_tag_request():
+    username = session['username']
+    photo_id = request.form['photo-id']
+    cursor = conn.cursor()
+    query = 'DELETE FROM Tagged WHERE username = %s AND photoID = %s'
+    cursor.execute(query, (username, photo_id))
+    conn.commit()
+    cursor.close()
+    message = 'Deleted tag request for photo {}'.format(photo_id)
+    return render_template('message.html', page="view_tag_request", message=message)
+
 # Go to follow user page
 @app.route('/follow_user')
 def follow_user():
