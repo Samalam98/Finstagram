@@ -9,19 +9,34 @@
 
 <h1>Welcome {{username}}</h1> 
 
-<a href="/upload_image">Upload photo</a><br> 
-<a href="/view_photos">View Photos</a><br>
-<a href="/follow_user">Follow Someone</a><br>
-<a href="/view_follow_requests">View Follow Requests</a><br>
-<a href="/view_tag_requests">View Tag Requests</a><br>
+<table class="nav">
+	<tr class="nav-row"> 
+	<td class="nav-cell"><a href="/upload_image">Upload Photo</a></td>
+	<td class="nav-cell"><a href="/view_photos">View Photos</a></td>
+	<td class="nav-cell"><a href="/follow_user">Follow Someone</a><br></td>
+	<td class="nav-cell"><a href="/view_follow_requests">View Follow Requests</a></td>
+	<td class="nav-cell" id="nav-cell-last"><a href="/view_tag_requests">View Tag Requests</a></td>
+</tr>
+</table><br>
 
 <style type="text/css">
+	.nav, .nav-row, .nav-cell{
+		border: none;
+	}
+	.nav-cell {
+		border-right: 2px solid black;
+		width: 200px;
+		text-align: center;
+	}
+	#nav-cell-last {
+		border-right: none;
+	}
 	table, th, td{
 		border: 1px solid black;
 	}
 </style>
 
-Here are your posts:
+<h3>Here are your posts:</h3>
 
 <table>
 	<th>Time</th>
