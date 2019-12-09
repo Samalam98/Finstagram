@@ -1,0 +1,20 @@
+<html>
+<head></head>
+<body>
+	<h2>Tag User In Photo {{id}}</h2>
+	<form action="/tag_request" method="POST">
+		<input type="text" name="tag-user" placeholder="username" required/>
+		<input type="hidden" name="photo-id" value="{{id}}"/>
+		<input type="hidden" name="prev-page" value="{{prev_page}}"/>
+		<input type="submit" value=Tag />
+		{{message}}
+	</form>
+
+	{% if prev_page == "own_photos" %}
+		<a href="/home">Go Back</a>
+	{% elif prev_page == "view_photos" %}
+		<a href="/view_photos">Go Back</a>
+	{% endif %}
+	
+</body>
+</html>

@@ -2,11 +2,15 @@
 	<head></head>
 
 	<body>
-		{{ message }}
-		{% if page == 'view_requests'%}
-			<a href="/view_requests">Go Back</a>
+		{{ message }} <br>
+		{% if page == 'view_follow_request'%}
+			<a href="/view_follow_requests">Go Back</a>
+		{% elif page == 'view_tag_request'%}
+			<a href="/view_tag_requests">Go Back</a>	
 		{% elif page == 'upload_image' %}
 			<a href="/upload_image">Go Back</a>
+		{% elif page == 'tag_user' %}
+			<a href="/tag_user/{{prev_page}}/{{id}}">Go Back</a>
 		{% endif %}
 	</body>
 </html>
