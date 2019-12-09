@@ -128,8 +128,6 @@ def post():
         caption = request.form['caption']
         image_name = image_file.filename
         friendGroups = request.form.getlist('shareGroup')
-        print(request.form)
-        print(friendGroups)
         filepath = os.path.join(IMAGES_DIR, image_name)
         image_file.save(filepath)
         # add photo to database 
@@ -142,7 +140,6 @@ def post():
         query = 'SELECT max(photoID) AS ID FROM Photo WHERE photoPoster = %s'
         cursor.execute(query, (username))
         data = cursor.fetchone()
-        print(data)
         # share photo with selected friend groups 
         query = 'INSERT INTO SharedWith (groupOwner, groupName, photoID) VALUES (%s, %s, %s)'
         for friendGroup in friendGroups:
@@ -155,6 +152,49 @@ def post():
     else:
         message = "Failed to upload image."
         return render_template('message.html', page='upload_image', message=message)
+
+# Go to tag user page
+@app.route('/tag_user/<prev_page>/<photo_id>')
+def tag_user(prev_page, photo_id):
+    return render_template('tag_user.html', prev_page=prev_page, id=photo_id)
+
+# Make a tag request
+@app.route('/tag_request', methods=['POST'])
+def tag_request():
+    username = session['username']
+    tagged_user = request.form['tag-user']
+    photo_id = int(request.form['photo-id'])
+    prev_page = request.form['prev-page']
+    cursor = conn.cursor()
+    # check to see if user being tagged exists
+    query = 'SELECT * FROM Person WHERE username = %s'
+    cursor.execute(query, (tagged_user))
+    data = cursor.fetchone()
+    # if user exists
+    if (data):
+        # check to see if a tag request has already been made for this user photo combination
+        query = 'SELECT * FROM Tagged WHERE username = %s AND photoID = %s'
+        cursor.execute(query, (tagged_user, photo_id))
+        data = cursor.fetchone()
+        # tag already exists
+        if (data):
+            cursor.close()
+            message = "User is already tagged in this photo."
+            return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
+        else: # create tag request
+            query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES(%s, %s, %s)'
+            # if self-tag, set tagstatus to True, else set it False
+            tagstatus = True if tagged_user == username else False
+            cursor.execute(query, (tagged_user, photo_id, tagstatus))
+            conn.commit()
+            cursor.close()
+            message = "Tag request successfully made!"
+            return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
+    else: # user does not exist
+        cursor.close()
+        message = "User does not exist."
+        return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
+
 
 # Go to follow user page
 @app.route('/follow_user')
@@ -260,7 +300,7 @@ def view_photos():
         JOIN BelongTo ON (groupOwner = owner_username AND p1.groupName = BelongTo.groupName) 
         WHERE member_username = %s AND photoPoster <> %s) '''
     cursor.execute(query, (username, username, username))
-    conn.commmit()
+    conn.commit()
     data = cursor.fetchall()
     cursor.close()
     return render_template('view_photos.html', posts=data)
