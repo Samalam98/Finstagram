@@ -359,19 +359,25 @@ def like():
     rating = request.form['rating'] 
     query = 'SELECT * FROM Likes WHERE username = %s AND photoID = %s'
     cursor.execute(query, (username, photo_id))
+    message=""
     data = cursor.fetchone()
+    print("message", message)
     # if found like history
-    message = "You have already liked and given this photo a rating!"
+    print("data", data)
     if (data):
-        
-        if (data['username'] == username and data['photoID'] == photo_id):   
-            return render_template('view_photos.html', message=message)
+        print("in this if state", username)
+        if (data['username'] == username and data['photoID'] == int(photo_id)):
+            message = "You have already liked and given this photo a rating!"
+            print("You are here")
+            return render_template('message.html', page='view_photos', message=message)
     else:
         query = 'INSERT INTO Likes (username, photoID, liketime, rating) VALUES (%s, %s, %s, %s)'
+        message= "You successfully liked this post!"
         cursor.execute(query, (
             username, photo_id, time.strftime('%Y-%m-%d %H:%M:%S'), rating))
-        return render_template('view_photos.html', message=message)
-    return render_template('home.html')
+        cursor.close()
+        return render_template('message.html', page='view_photo', message=message)
+    return render_template('message.html', page='view_photos', message=message)
 
 @app.route('/logout')
 def logout():
