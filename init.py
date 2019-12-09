@@ -15,7 +15,7 @@ IMAGES_DIR = os.path.join(os.getcwd(), "images")
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
-                       port = 3306,
+                       port = 8889,
                        user='irvin',
                        password='Itstuy14308!',
                        db='Finstagram',
@@ -110,7 +110,7 @@ def home():
 @app.route('/upload_image')
 def upload_image():
     username = session['username']
-    cursor = conn.cursor();
+    cursor = conn.cursor()
     query = 'SELECT groupName, owner_username FROM BelongTo WHERE member_username = %s'
     cursor.execute(query, (username))
     data = cursor.fetchall()
@@ -232,6 +232,10 @@ def delete_request():
     cursor.close()
     message = 'Follow request from {} has been deleted.'.format(username_follower)
     return render_template('message.html', page='view_request', message=message)
+# @app.route
+# def like():
+
+
 
 # @app.route('/select_blogger')
 # def select_blogger():
@@ -251,18 +255,22 @@ def view_photos():
     #view all available photoID of photos for testUser
     username = session['username']
     cursor = conn.cursor()
-    query = '''(SELECT DISTINCT photoID, photoPoster 
+    query = '''(SELECT DISTINCT photoID, photoPoster, filepath
         FROM Photo JOIN Follow ON (Photo.photoPoster = Follow.username_followed) 
         WHERE Photo.AllFollowers = True AND Follow.username_follower = %s
         ORDER BY postingdate DESC) UNION
-        (SELECT DISTINCT photoID, photoPoster 
+        (SELECT DISTINCT photoID, photoPoster, filepath
         FROM (Photo NATURAL JOIN SharedWith AS p1) 
         JOIN BelongTo ON (groupOwner = owner_username AND p1.groupName = BelongTo.groupName) 
         WHERE member_username = %s AND photoPoster <> %s) '''
     cursor.execute(query, (username, username, username))
-    conn.commmit()
+    conn.commit()
     data = cursor.fetchall()
     cursor.close()
+    for item in data:
+        item['filepath'] = url_for('static', filename=item['filepath'])
+        # item['filepath'] = os.path.join(app.config['UPLOAD_FOLDER'], item['filepath'])
+        print(item['filepath'])
     return render_template('view_photos.html', posts=data)
 
 @app.route('/logout')
