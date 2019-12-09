@@ -310,15 +310,7 @@ def delete_request():
     conn.commit()
     cursor.close()
     message = 'Follow request from {} has been deleted.'.format(username_follower)
-<<<<<<< HEAD
-    return render_template('message.html', page='view_request', message=message)
-# @app.route
-# def like():
-
-
-=======
     return render_template('message.html', page='view_follow_request', message=message)
->>>>>>> a66c10f10bade13e57f15fd2023914fc9af34400
 
 # @app.route('/select_blogger')
 # def select_blogger():
