@@ -237,7 +237,7 @@ def follow_request():
         return render_template('follow_user.html', message=message)
 
 # Go to view follow requests page
-@app.route('/view_requests')
+@app.route('/view_follow_requests')
 def view_requests():
     username = session['username']
     cursor = conn.cursor()
@@ -246,7 +246,7 @@ def view_requests():
     conn.commit()
     data = cursor.fetchall()
     cursor.close()
-    return render_template('view_requests.html', requests=data)
+    return render_template('view_follow_requests.html', requests=data)
 
 # Accept follow request
 @app.route('/accept_request', methods=['POST'])
@@ -259,7 +259,7 @@ def accept_request():
     conn.commit()
     cursor.close()
     message = '{} is now a follower!'.format(username_follower)
-    return render_template('message.html', page='view_request', message=message)
+    return render_template('message.html', page='view_follow_request', message=message)
 
 @app.route('/delete_request', methods=['POST'])
 def delete_request():
@@ -271,7 +271,7 @@ def delete_request():
     conn.commit()
     cursor.close()
     message = 'Follow request from {} has been deleted.'.format(username_follower)
-    return render_template('message.html', page='view_request', message=message)
+    return render_template('message.html', page='view_follow_request', message=message)
 
 # @app.route('/select_blogger')
 # def select_blogger():
