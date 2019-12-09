@@ -345,9 +345,22 @@ def view_photos():
     for item in data:
         item['filepath'] = url_for('static', filename=item['filepath'])
         # item['filepath'] = os.path.join(app.config['UPLOAD_FOLDER'], item['filepath'])
-        print(item['filepath'])
     return render_template('view_photos.html', posts=data)
 
+@app.route('/view_info/<prev_page>/<photo_id>', methods=["GET", "POST"])
+def view_info(photo_id, prev_page):
+    print(photo_id)
+    cursor = conn.cursor()
+    query = ''' SELECT postingdate, firstName, lastName
+        FROM Photo JOIN Person ON (Photo.photoPoster = Person.username)
+        WHERE photoID = %s
+            '''
+    cursor.execute(query, (photo_id))
+    conn.commit()
+    data = cursor.fetchall()
+    print(data)
+    cursor.close()
+    return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id)
 @app.route('/logout')
 def logout():
     session.pop('username')

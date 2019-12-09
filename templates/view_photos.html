@@ -14,13 +14,21 @@ You're Viewing All Posts:
 <table>
 	<th>Photo ID</th>
 	<th>Poster</th>
-
+	<th>Images</th>
+	<th>Additional Info</th>
+	<th>Action</th>
 {% for line in posts %}
 	<tr>
 		<td>{{line.photoID}}</td>
 		<td>{{line.photoPoster}}</td>
 		<td><img src="{{line.filepath}}" alt="picture" height=20%></td>
-		<td><a href="/tag_user/view_photos/{{line.photoID}}">Tag Users</a></td>
+		<td><a href="view_info/view_photos/{{line.photoID}}">View</a></td>
+		<td><a href="/tag_user/view_photos/{{line.photoID}}">Tag Users</a>
+			<br>
+			<a href="like/view_photos/{{line.photoID}}">Like</a>
+			<br>
+			<a href="comment/view_photos/{{line.photoID}}">Comment</a>
+		</td>
 	</tr>
 {% endfor %}
 </table>
