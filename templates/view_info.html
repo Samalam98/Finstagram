@@ -21,7 +21,13 @@
                 <p>{{comment.comment}}</p>
                 {% endfor %}
             </ul>
-        
+        </li>
+        <li>Tagged Users:
+            <ul>
+                {% for item in tagged %}
+                <li>{{item.username}}, {{item.firstName}} {{item.lastName}}</li>
+                {% endfor %}
+            </ul>
         </li>
     </ul>
 	{% if prev_page == "own_photos" %}
