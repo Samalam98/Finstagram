@@ -334,12 +334,12 @@ def view_photos():
     cursor = conn.cursor()
     query = '''(SELECT DISTINCT photoID, photoPoster, filepath
         FROM Photo JOIN Follow ON (Photo.photoPoster = Follow.username_followed) 
-        WHERE allFollowers = True AND username_follower = %s
+        WHERE allFollowers = True AND username_follower = %s OR photoPoster = %s
         ORDER BY postingdate DESC) UNION
         (SELECT DISTINCT photoID, photoPoster, filepath
         FROM (Photo NATURAL JOIN SharedWith AS p1) 
         JOIN BelongTo ON (groupOwner = owner_username AND p1.groupName = BelongTo.groupName) 
-        WHERE member_username = %s AND photoPoster <> %s) '''
+        WHERE member_username = %s)'''
     cursor.execute(query, (username, username, username))
     conn.commit()
     data = cursor.fetchall()
