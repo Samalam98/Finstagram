@@ -368,8 +368,11 @@ def view_info(photo_id, prev_page):
     query4 = 'SELECT COUNT(*) AS total_like, ROUND(AVG(rating), 1) as avg_rating FROM Likes WHERE photoID = %s GROUP BY photoID'
     cursor.execute(query4, (photo_id))
     stat = cursor.fetchone()
+    query5 = 'SELECT username, firstName, lastName FROM Tagged NATURAL JOIN Person WHERE photoID = %s AND tagstatus = TRUE'
+    cursor.execute(query5, (photo_id))
+    tagged = cursor.fetchall()
     cursor.close()
-    return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id, liked_by=liked_by, comments=comments, stat=stat)
+    return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id, liked_by=liked_by, comments=comments, stat=stat, tagged=tagged)
 
 @app.route('/like', methods=["GET", "POST"])
 def like():
