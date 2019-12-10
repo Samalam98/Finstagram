@@ -11,6 +11,8 @@ app = Flask(__name__)
 
 # Initialize SALT for password
 SALT = 'cs3083'
+
+#Added a static folder to save images and serve them
 IMAGES_DIR = os.path.join(os.getcwd(), "static")
 
 #Configure MySQL
@@ -98,6 +100,7 @@ def registerAuth():
 # Load home page
 @app.route('/home')
 def home():
+    #load the user's post
     user = session['username']
     cursor = conn.cursor()
     query = 'SELECT postingdate, photoID, caption FROM Photo WHERE photoPoster = %s ORDER BY postingdate DESC'
@@ -329,7 +332,7 @@ def delete_request():
 
 @app.route('/view_photos', methods=["GET", "POST"])
 def view_photos():
-    #view all available photoID of photos for testUser
+    #view all available photo info for current user
     username = session['username']
     cursor = conn.cursor()
     query = '''(SELECT DISTINCT photoID, photoPoster, filepath
@@ -344,36 +347,43 @@ def view_photos():
     conn.commit()
     data = cursor.fetchall()
     cursor.close()
+    #modify the images' file path
     for item in data:
         item['filepath'] = url_for('static', filename=item['filepath'])
-        # item['filepath'] = os.path.join(app.config['UPLOAD_FOLDER'], item['filepath'])
     return render_template('view_photos.html', posts=data)
 
+#view detailed info of a post
 @app.route('/view_info/<prev_page>/<photo_id>', methods=["GET", "POST"])
 def view_info(photo_id, prev_page):
     cursor = conn.cursor()
-    query = ''' SELECT postingdate, firstName, lastName, caption
+    #fetch the photo info
+    query_fetch = ''' SELECT postingdate, firstName, lastName, caption
         FROM Photo JOIN Person ON (Photo.photoPoster = Person.username)
         WHERE photoID = %s
             '''
-    cursor.execute(query, (photo_id))
+    cursor.execute(query_fetch, (photo_id))
     conn.commit()
     data = cursor.fetchone()
-    query2 = 'SELECT username, rating, liketime FROM Likes WHERE photoID = %s'
-    cursor.execute(query2, (photo_id))
+    #fetech like info
+    query_like = 'SELECT username, rating, liketime FROM Likes WHERE photoID = %s'
+    cursor.execute(query_like, (photo_id))
     liked_by = cursor.fetchall()
-    query3 = 'SELECT username, comment, comment_time FROM Comments WHERE photoID = %s'
-    cursor.execute(query3, (photo_id))
+    #fetech comments
+    query_comment = 'SELECT username, comment, comment_time FROM Comments WHERE photoID = %s'
+    cursor.execute(query_comment, (photo_id))
     comments = cursor.fetchall()
-    query4 = 'SELECT COUNT(*) AS total_like, ROUND(AVG(rating), 1) as avg_rating FROM Likes WHERE photoID = %s GROUP BY photoID'
-    cursor.execute(query4, (photo_id))
+    #fetch stats
+    query_stats = 'SELECT COUNT(*) AS total_like, ROUND(AVG(rating), 1) as avg_rating FROM Likes WHERE photoID = %s GROUP BY photoID'
+    cursor.execute(query_stats, (photo_id))
     stat = cursor.fetchone()
-    query5 = 'SELECT username, firstName, lastName FROM Tagged NATURAL JOIN Person WHERE photoID = %s AND tagstatus = TRUE'
-    cursor.execute(query5, (photo_id))
+    #fetch tagged
+    query_tagged = 'SELECT username, firstName, lastName FROM Tagged NATURAL JOIN Person WHERE photoID = %s AND tagstatus = TRUE'
+    cursor.execute(query_tagged, (photo_id))
     tagged = cursor.fetchall()
     cursor.close()
     return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id, liked_by=liked_by, comments=comments, stat=stat, tagged=tagged)
 
+#Like a post
 @app.route('/like', methods=["GET", "POST"])
 def like():
     username = session['username']
@@ -384,7 +394,7 @@ def like():
     cursor.execute(query, (username, photo_id))
     message=""
     data = cursor.fetchone()
-    # if found like history
+    #check if user already liked post
     if (data):
         if (data['username'] == username and data['photoID'] == int(photo_id)):
             message = "You have already liked and given this photo a rating!"
@@ -398,6 +408,7 @@ def like():
         cursor.close()
         return render_template('message.html', page='view_photos', message=message)
 
+#Comment on a post
 @app.route('/comment', methods=["GET", "POST"])
 def comment():
     username = session['username']
