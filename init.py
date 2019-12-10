@@ -15,7 +15,7 @@ IMAGES_DIR = os.path.join(os.getcwd(), "static")
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
-                       port = 8889,
+                       port = 3306,
                        user='irvin',
                        password='Itstuy14308!',
                        db='Finstagram',
@@ -182,14 +182,29 @@ def tag_request():
             message = "User is already tagged in this photo."
             return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
         else: # create tag request
-            query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES(%s, %s, %s)'
-            # if self-tag, set tagstatus to True, else set it False
-            tagstatus = True if tagged_user == username else False
-            cursor.execute(query, (tagged_user, photo_id, tagstatus))
-            conn.commit()
-            cursor.close()
-            message = "Tag request successfully made!"
-            return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
+            # check to see if photo is visible to tagged user 
+            query = """(SELECT photoID, username_followed
+                FROM Photo JOIN Follow ON (photoPoster = username_followed) 
+                WHERE allFollowers = True AND followStatus = True AND photoID = %s AND username_follower = %s) UNION (
+                SELECT photoID, member_username       
+                FROM (BelongTo NATURAL JOIN SharedWith)  
+                WHERE member_username = %s AND photoID = %s)"""
+            cursor.execute(query, (photo_id, tagged_user, tagged_user, photo_id))
+            data = cursor.fetchone()
+            # if photo is visible to tagged user, make request
+            if (data):
+                query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES(%s, %s, %s)'
+                # if self-tag, set tagstatus to True, else set it False
+                tagstatus = True if tagged_user == username else False
+                cursor.execute(query, (tagged_user, photo_id, tagstatus))
+                conn.commit()
+                cursor.close()
+                message = "Tag request successfully made!"
+                return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
+            else: # photo is not visible to tagged user
+                cursor.close()
+                message = "Photo is not visible to that user."
+                return render_template('message.html', id=photo_id, prev_page=prev_page, page='tag_user', message=message)
     else: # user does not exist
         cursor.close()
         message = "User does not exist."
@@ -319,7 +334,7 @@ def view_photos():
     cursor = conn.cursor()
     query = '''(SELECT DISTINCT photoID, photoPoster, filepath
         FROM Photo JOIN Follow ON (Photo.photoPoster = Follow.username_followed) 
-        WHERE Photo.AllFollowers = True AND Follow.username_follower = %s
+        WHERE allFollowers = True AND username_follower = %s
         ORDER BY postingdate DESC) UNION
         (SELECT DISTINCT photoID, photoPoster, filepath
         FROM (Photo NATURAL JOIN SharedWith AS p1) 
@@ -363,14 +378,10 @@ def like():
     cursor.execute(query, (username, photo_id))
     message=""
     data = cursor.fetchone()
-    print("message", message)
     # if found like history
-    print("data", data)
     if (data):
-        print("in this if state", username)
         if (data['username'] == username and data['photoID'] == int(photo_id)):
             message = "You have already liked and given this photo a rating!"
-            print("You are here")
             return render_template('message.html', page='view_photos', message=message)
     else:
         query = 'INSERT INTO Likes (username, photoID, liketime, rating) VALUES (%s, %s, %s, %s)'
@@ -379,8 +390,7 @@ def like():
             username, photo_id, time.strftime('%Y-%m-%d %H:%M:%S'), rating))
         conn.commit()
         cursor.close()
-        return render_template('message.html', page='view_photo', message=message)
-    return render_template('message.html', page='view_photos', message=message)
+        return render_template('message.html', page='view_photos', message=message)
 
 @app.route('/comment', methods=["GET", "POST"])
 def comment():
