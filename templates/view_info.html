@@ -2,9 +2,11 @@
 <head></head>
 <body>
     <ul>
+        <li>Caption: {{info.caption}}</li>
         <li>Time Stamp: {{info.postingdate}}</li>
         <li>First Name: {{info.firstName}}</li>
         <li>Last Name: {{info.lastName}}</li>
+        <li>{{stat.total_like}} Total Likes, Average Rating: {{stat.avg_rating}}</li>
         <li>Liked By: 
             <ul>
                 {% for liked in liked_by %}

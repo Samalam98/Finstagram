@@ -352,7 +352,7 @@ def view_photos():
 @app.route('/view_info/<prev_page>/<photo_id>', methods=["GET", "POST"])
 def view_info(photo_id, prev_page):
     cursor = conn.cursor()
-    query = ''' SELECT postingdate, firstName, lastName
+    query = ''' SELECT postingdate, firstName, lastName, caption
         FROM Photo JOIN Person ON (Photo.photoPoster = Person.username)
         WHERE photoID = %s
             '''
@@ -365,8 +365,11 @@ def view_info(photo_id, prev_page):
     query3 = 'SELECT username, comment, comment_time FROM Comments WHERE photoID = %s'
     cursor.execute(query3, (photo_id))
     comments = cursor.fetchall()
+    query4 = 'SELECT COUNT(*) AS total_like, ROUND(AVG(rating), 1) as avg_rating FROM Likes WHERE photoID = %s GROUP BY photoID'
+    cursor.execute(query4, (photo_id))
+    stat = cursor.fetchone()
     cursor.close()
-    return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id, liked_by=liked_by, comments=comments)
+    return render_template('view_info.html', info=data, prev_page=prev_page, id=photo_id, liked_by=liked_by, comments=comments, stat=stat)
 
 @app.route('/like', methods=["GET", "POST"])
 def like():
